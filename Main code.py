@@ -344,6 +344,136 @@ print "MSRE Value For Linear Regression: ",metrics.mean_squared_error(ytest_log,
 # __Regulariztion model-Ridge__
 
 # We use Ridge regression and we also hyper-tune ridge parameter and then fit and predict:
-
 # In[174]:
 
+
+ridge_model = Ridge()
+#parameters
+ridge_params_ = { 'alpha':[1e-2,1e-1,1,1e1,1e2,1e3,1e4,1e5,1e6]}
+
+#finding the best parameters based on RMSE and 5-fold CV
+grid_ridge_m = GridSearchCV( ridge_model,
+                          ridge_params_,
+                          scoring = 'mean_squared_error',
+                          cv=5)
+
+grid_ridge_m_f=grid_ridge_m.fit( Xtrain, ytrain_log )
+ridge_preds = grid_ridge_m.predict(X= Xtest)
+print (grid_ridge_m.best_params_)
+
+
+# The optimal parameter is 10,000
+
+# In[175]:
+
+
+print "R squared Value For Linear Regression: ",metrics.r2_score(ytest_log, ridge_preds)
+print "RMSE Value For Linear Regression: ",metrics.mean_squared_error(ytest_log,ridge_preds)
+
+
+# We can plot RMSE vs. ridge parameter and see the optimal value:
+
+# In[176]:
+
+
+fig,ax= plt.subplots()
+fig.set_size_inches(12,5)
+df = pd.DataFrame(grid_ridge_m.grid_scores_)
+df["alpha"] = df["parameters"].apply(lambda x:x["alpha"])
+df["rmse"] = df["mean_validation_score"].apply(lambda x:-x)
+sns.pointplot(data=df,x="alpha",y="rmse",ax=ax)
+ax.set(title="RMSE vs. Alpha in Ridge Regression",label='big')
+
+
+# Again, we do Ridge regression on OneHotEncoded data:
+
+# In[177]:
+
+
+#finding the best parameters based on RMSE and 5-fold CV
+grid_ridge_m = GridSearchCV( ridge_model,
+                          ridge_params_,
+                          scoring = 'mean_squared_error',
+                          cv=5)
+
+grid_ridge_m.fit( Xtrain_en, ytrain_log )
+ridge_preds = grid_ridge_m.predict(X= Xtest_en)
+print (grid_ridge_m.best_params_)
+
+
+# In[178]:
+
+
+print "R squared Value For Linear Regression: ",metrics.r2_score(ytest_log, ridge_preds)
+print "RMSE Value For Linear Regression: ",metrics.mean_squared_error(ytest_log,ridge_preds)
+
+
+# Again, We see the model performs much better with OneHotEncode. The following graph also shows Ridge regression parameter vs. RMSE.
+
+# In[179]:
+
+
+fig,ax= plt.subplots()
+fig.set_size_inches(12,5)
+df = pd.DataFrame(grid_ridge_m.grid_scores_)
+df["alpha"] = df["parameters"].apply(lambda x:x["alpha"])
+df["rmse"] = df["mean_validation_score"].apply(lambda x:-x)
+sns.pointplot(data=df,x="alpha",y="rmse",ax=ax)
+ax.set(title="RMSE vs. Alpha in Ridge Regression with OneHotEncode",label='big')
+
+
+# __Lasso Regression__
+
+# In[180]:
+
+
+lasso_model = Lasso()
+
+alpha  = 1/np.array([1e-2,1e-1,1,1e1,1e2,1e3,1e4,1e5,1e6])
+lasso_params_ = { 'alpha':alpha}
+
+grid_lasso_m = GridSearchCV( lasso_model,
+                            lasso_params_,
+                            scoring ='mean_squared_error',
+                            n_jobs=-1,
+                            cv=5)
+
+grid_lasso_m.fit( Xtrain, ytrain_log )
+lasso_preds = grid_lasso_m.predict(X= Xtest)
+print "Optimal parameter: ",grid_lasso_m.best_params_
+print "R squared Value For Linear Regression: ",metrics.r2_score(ytest_log, ridge_preds)
+print "RMSE Value For Linear Regression: ",metrics.mean_squared_error(ytest_log,ridge_preds)
+
+fig,ax= plt.subplots()
+fig.set_size_inches(12,5)
+df = pd.DataFrame(grid_lasso_m.grid_scores_)
+df["alpha"] = df["parameters"].apply(lambda x:x["alpha"])
+df["rmse"] = df["mean_validation_score"].apply(lambda x:-x)
+sns.pointplot(data=df,x="alpha",y="rmse",ax=ax)
+ax.set(title="RMSE vs. Alpha in LASSO Regression",label='big')
+
+
+# with OneHotEncode:
+
+# In[181]:
+
+
+grid_lasso_m = GridSearchCV( lasso_model,
+                            lasso_params_,
+                            scoring ='mean_squared_error',
+                            n_jobs=-1,
+                            cv=5)
+
+grid_lasso_m.fit( Xtrain_en, ytrain_log )
+lasso_preds = grid_lasso_m.predict(X= Xtest_en)
+print "Optimal parameter: ",grid_lasso_m.best_params_
+print "R squared Value For Linear Regression: ",metrics.r2_score(ytest_log, ridge_preds)
+print "RMSE Value For Linear Regression: ",metrics.mean_squared_error(ytest_log,ridge_preds)
+
+fig,ax= plt.subplots()
+fig.set_size_inches(12,5)
+df = pd.DataFrame(grid_lasso_m.grid_scores_)
+df["alpha"] = df["parameters"].apply(lambda x:x["alpha"])
+df["rmse"] = df["mean_validation_score"].apply(lambda x:-x)
+sns.pointplot(data=df,x="alpha",y="rmse",ax=ax)
+ax.set(title="RMSE vs. Alpha in LASSO Regression with OneHotEncode",label='big')
