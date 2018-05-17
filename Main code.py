@@ -649,3 +649,66 @@ weights = model.layers[0].get_weights()
 
 
 
+
+
+# In[209]:
+
+
+model_status = model.fit(Xtrain, ytrain_log, nb_epoch = 100, batch_size=10, verbose=1 , validation_data=(Xtest, ytest_log))    
+
+
+# In[210]:
+
+
+nn_pred=model.predict(Xtest)
+
+
+# In[211]:
+
+
+print "R squared Value For NN: ",metrics.r2_score(ytest_log, nn_pred)
+print "RMSE Value For NN: ",metrics.mean_squared_error(ytest_log,nn_pred)
+
+
+# In[347]:
+
+
+# plotting prediction
+def train_history_prediction_plot(nepochs,Xtrain,ytrain_log,Xtest,ytest_log):
+    
+    # fit the model
+    model_status = model.fit(Xtrain, ytrain_log, nb_epoch = nepochs, batch_size=20, verbose=1, 
+              validation_data=(Xtest, ytest_log))
+    
+    # Plotting list all data in the model history
+    print(model_status.history.keys())
+    
+    # summarize history for accuracy
+    plt.plot(model_status.history['acc'])
+    plt.plot(model_status.history['val_acc'])
+    #plt.title('model accuracy')
+    plt.ylabel('accuracy', fontsize=15)
+    plt.xlabel('epoch', fontsize=15)
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    
+    # summarize history for loss
+    plt.plot(model_status.history['loss'])
+    plt.plot(model_status.history['val_loss'])
+    #plt.title('model loss')
+    plt.ylabel('loss', fontsize=15)
+    plt.xlabel('epoch', fontsize=15)
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+
+   
+    # predict the model
+    ypred = model.predict(Xtest)
+
+    # Accuracy of the predicted results using mean squared error metric
+    print('MSE: ', metrics.mean_squared_error(ytest, ypred))
+
+    self_pred=model.predict(Xtrain)
+
+
+
