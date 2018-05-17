@@ -584,4 +584,68 @@ print "RMSE Value For SVR with rbf kernel: ",metrics.mean_squared_error(ytest_lo
 
 
 
+grid_svr_m.fit(Xtrain_en,np.ravel(ytrain_log))
+svr_preds = grid_svr_m.predict(X= Xtest_en)
+print (grid_svr_m.best_params_)
+
+
+print "R squared Value For SVR with rbf kernel and encoding: ",metrics.r2_score(ytest_log, svr_preds)
+print "RMSE Value For SVR with rbf kernel and encoding: ",metrics.mean_squared_error(ytest_log,svr_preds)
+
+
+# We can see OneHotEncode performance is worse than just using features without encoding.
+
+# __Neural Network__
+
+# We used "Keras" package to implement neural network. Keras is a high-level neural networks API, and it is capable of running on top of either TensorFlow or Theano (we use Theano here).
+# 
+# We tried many different setting, but for MLP network we found that having 3 hidden layer with batch stochastic gradient desent and softplus activation function which is a smooth approximation to ReLU can lead to a reasonale answer. We also tried sigmoid but its performance is pretty bad. 
+
+# In[194]:
+
+
+from sklearn import metrics
+#import sys
+from keras.models import Sequential
+from keras.layers.core import Dense, Activation, Dropout
+from keras.optimizers import SGD
+
+
+# In[195]:
+
+
+Xtrain=Xtrain.as_matrix()
+Xtest=Xtest.as_matrix()
+ytrain_log=ytrain_log.as_matrix()
+ytest_log=ytest_log.as_matrix()
+
+
+# In[208]:
+
+
+from keras.optimizers import SGD
+
+## create model
+#keras.layers.core.Dense(units, activation=None, use_bias=True, kernel_initializer='glorot_uniform', bias_initializer='zeros', kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, bias_constraint=None)
+##units is the number of units.
+
+##Initializations define the way to set the initial random weights of Keras layers.
+#'glorot_normal' draws samples from a truncated normal distribution centered on 0 with 
+
+#activation 
+model = Sequential()
+model.add(Dense(10, input_dim=10, init='glorot_normal', activation='softplus'))
+model.add(Dense(30, init='glorot_normal', activation='softplus'))
+model.add(Dense(20, init='glorot_normal', activation='softplus'))
+model.add(Dense(10, init='glorot_normal', activation='softplus'))
+model.add(Dense(1, activation='softplus'))
+
+## compile the model
+SGD=SGD(lr=0.01, momentum=0.0, decay=0.0, nesterov=False)
+model.compile(loss='mse', optimizer='SGD', metrics=['accuracy'])
+
+# print initial weights
+weights = model.layers[0].get_weights()
+
+
 
