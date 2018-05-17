@@ -835,3 +835,174 @@ grid_rf_c = GridSearchCV(
     cv = kf_5
 )
 
+
+
+# In[299]:
+
+
+ytrain_c=np.array(ytrain_c)
+Xtrain_en=np.array(Xtrain_en)
+
+
+# In[303]:
+
+
+rbf_c_x = grid_rf_c.fit(Xtrain, ytrain_c)
+
+
+# Optimal Number of Trees:
+
+# In[304]:
+
+
+rbf_c_x.best_params_
+
+
+# In[305]:
+
+
+rbf_c_x_prob = rbf_c_x.predict_proba(Xtest)
+rbf_c_x_pred = rbf_c_x.predict(Xtest)
+
+
+# Confusion Matrix:
+
+# In[315]:
+
+
+from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report, precision_recall_curve
+
+pd.DataFrame(confusion_matrix(ytest_c, rbf_c_x_pred))
+
+
+# Classification Report:
+
+# In[317]:
+
+
+print classification_report(ytest_c, rbf_c_x_pred)
+
+
+# We can see the average f1-score is 0.61 and the accuracy of RF is 64%. 
+
+# __Adaboost__
+
+# Hyper tuning adaboost using 5-fold CV
+
+# In[325]:
+
+
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+adaboost = AdaBoostClassifier()
+n_est = {'n_estimators' : [10, 20, 50]}
+adb = GridSearchCV(adaboost,
+                  n_est,
+                  cv = kf_5,
+                  n_jobs = -1,
+                  scoring = 'accuracy',
+                  refit = True)
+
+
+# In[326]:
+
+
+adb_c_x = adb.fit(Xtrain, ytrain_c)
+
+
+# The best maximum number of estimators at which boosting is terminated:
+
+# In[327]:
+
+
+adb_c_x.best_params_
+
+
+# In[329]:
+
+
+adb_prob = adb_c_x.predict_proba(Xtest)
+adb_pred = adb_c_x.predict(Xtest)
+
+
+# Confusion Matrix:
+
+# In[330]:
+
+
+pd.DataFrame(confusion_matrix(ytest_c, adb_pred))
+
+
+# Classifier Report:
+
+# In[331]:
+
+
+print classification_report(ytest_c, adb_pred)
+
+
+# The average f1-score is 0.54 and the accuracy is 61%.
+
+# __SVM:__
+
+# Hyper Tuning:
+
+# In[338]:
+
+
+from sklearn.pipeline import Pipeline
+from sklearn.svm import SVC
+
+pipeline_svm = Pipeline([('classifier', SVC(probability=True)),])
+
+
+param_svm = [                                  #  parameters to automatically explore and tune
+  {'classifier__C':  [0.01, 1, 10], 
+   'classifier__gamma':  [0.01, 1, 10] },
+]
+
+#tuning parameters
+grid_svm = GridSearchCV(
+    pipeline_svm,
+    param_grid=param_svm,  # parameters to tune 
+    n_jobs=-1,  # number of cores to use 
+    scoring='accuracy',  # what score are we optimizing?
+    cv = kf_5
+)
+
+
+# In[339]:
+
+
+svm = grid_svm.fit(Xtrain, ytrain_c)
+
+
+# In[340]:
+
+
+svm.best_params_
+
+
+# In[341]:
+
+
+svm_prob = svm.predict_proba(Xtest)
+svm_pred = svm.predict(Xtest)
+
+
+# Confusion Matrix:
+
+# In[342]:
+
+
+pd.DataFrame(confusion_matrix(ytest_c, svm_pred))
+
+
+# Classification Report:
+
+# In[343]:
+
+
+print classification_report(ytest_c, svm_pred)
+
+
+# The accuracy in SVM is also 61%, but it outperforms adaboost in precision.
