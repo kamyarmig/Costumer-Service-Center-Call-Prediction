@@ -711,4 +711,127 @@ def train_history_prediction_plot(nepochs,Xtrain,ytrain_log,Xtest,ytest_log):
     self_pred=model.predict(Xtrain)
 
 
+# In[215]:
+
+
+train_history_prediction_plot(100,Xtrain,ytrain_log,Xtest,ytest_log)
+
+
+# We can plot loss function in each epoch using different optimization method (we used stochastic gradient desent):
+
+# In[218]:
+
+
+## plotting loss given various optimizers
+def plotting_loss(optmization_method):
+    
+    
+    #activation 
+    model = Sequential()
+    model.add(Dense(10, input_dim=10, init='glorot_normal', activation='softplus'))
+    model.add(Dense(30, init='glorot_normal', activation='softplus'))
+    model.add(Dense(20, init='glorot_normal', activation='softplus'))
+    model.add(Dense(10, init='glorot_normal', activation='softplus'))
+    model.add(Dense(1, activation='softplus'))
+
+    ## compile the model
+    model.compile(loss='mse', optimizer = optmization_method)
+    model_history = model.fit(Xtrain, ytrain_log, nb_epoch = 100, batch_size=10, verbose=1 , validation_data=(Xtest, ytest_log))    
+      
+    # summarize history for loss
+    plt.plot(model_history.history['loss'])
+    plt.plot(model_history.history['val_loss'])
+    plt.ylabel('loss', fontsize=15)
+    plt.xlabel('epoch', fontsize=15)
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+
+
+# In[219]:
+
+
+plotting_loss('SGD')
+
+
+# Let's see how it looks like with Adam optimization method which is an algorithm for first-order gradient-based optimization of stochastic objective functions, based on adaptive estimates of lower-order moments.
+
+# In[220]:
+
+
+from keras.optimizers import Adam
+plotting_loss('Adam')
+
+
+# It seems Adam performance is better than SGD, however, it starts to overfit the data. We rerun the model with Adams:
+
+# In[221]:
+
+
+adam=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+model.compile(loss='mse', optimizer='Adam', metrics=['accuracy'])
+
+# print initial weights
+weights = model.layers[0].get_weights()
+model_status = model.fit(Xtrain, ytrain_log, nb_epoch = 100, batch_size=10, verbose=1 , validation_data=(Xtest, ytest_log))    
+
+
+# In[222]:
+
+
+nn_pred_a=model.predict(Xtest)
+
+
+# In[223]:
+
+
+print "R squared Value For NN with Adam: ",metrics.r2_score(ytest_log, nn_pred)
+print "RMSE Value For NN with Adam: ",metrics.mean_squared_error(ytest_log,nn_pred)
+
+
+# There is not that much improvement compared with SGD.
+# In the future we may use a convolution layer with a pooling layer.
+
+# # Classification
+
+# We thought turning the problem into a classification problem would allow for a better interpretation of how well the model is performing. We turn number of Calls to four different classes: low (1,5), medium (5,10), high (10,25) and extraordinary (25,250). You can see the histogram of this variable:
+
+# In[314]:
+
+
+ytrain_c=np.digitize(ytrain,bins=np.array([1,5,10,25,250]))
+ytest_c=np.digitize(ytest,bins=np.array([1,5,10,25,250]))
+
+
+# In[292]:
+
+
+fig,(ax1) = plt.subplots(ncols=1)
+fig.set_size_inches(12, 5)
+sns.distplot( ytrain_c,ax=ax1,kde=False)
+ax1.set( ylabel='# of Calls',title='Number of Calls in our training dataset',label='big')
+
+
+# In the following we implemented and hyper tuned Random Forest:
+
+# In[302]:
+
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import ParameterGrid
+from sklearn import cross_validation
+
+
+rf_c = RandomForestClassifier()
+ntrees = {'n_estimators': [10,100,250,500,1000,2500,5000]}
+kf_5 = cross_validation.KFold(Xtrain.shape[0], n_folds= 5, shuffle = True, random_state = 0)  #5-fold cros
+
+
+#tuning parameters
+grid_rf_c = GridSearchCV(
+    rf_c,
+    ntrees,  # parameters to tune 
+    n_jobs=-1,  # number of cores to use 
+    scoring='accuracy',  # what score are we optimizing?
+    cv = kf_5
+)
 
