@@ -477,3 +477,111 @@ df["alpha"] = df["parameters"].apply(lambda x:x["alpha"])
 df["rmse"] = df["mean_validation_score"].apply(lambda x:-x)
 sns.pointplot(data=df,x="alpha",y="rmse",ax=ax)
 ax.set(title="RMSE vs. Alpha in LASSO Regression with OneHotEncode",label='big')
+
+from sklearn.ensemble import RandomForestRegressor
+rfModel = RandomForestRegressor()
+
+rf_parameters= {'n_estimators': [10,100,500,1000], 'max_depth': [None, 1, 3]}
+
+grid_rf = GridSearchCV(rfModel, 
+                   rf_parameters, 
+                   cv=5,
+                   scoring='mean_squared_error',
+                   n_jobs=-1, 
+                   verbose=1)
+
+grid_rf.fit(Xtrain,np.ravel(ytrain_log))
+rf_preds = grid_rf.predict(X= Xtest)
+print (grid_rf.best_params_)
+print "R squared Value For Random Forest: ",metrics.r2_score(ytest_log, rf_preds)
+print "RMSE Value For Random Forest: ",metrics.mean_squared_error(ytest_log,rf_preds)
+
+
+# With OneHotEncoding:
+
+# In[184]:
+
+
+grid_rf.fit(Xtrain_en,np.ravel(ytrain_log))
+rf_preds = grid_rf.predict(X= Xtest_en)
+print (grid_rf.best_params_)
+print "R squared Value For Linear Regression: ",metrics.r2_score(ytest_log, rf_preds)
+print "RMSE Value For Linear Regression: ",metrics.mean_squared_error(ytest_log,rf_preds)
+
+
+# Since Random Forest can handle categorical values natively, OnehotEncoding does not help.
+
+# __Ensemble Model - Gradient Boost__
+
+# In[185]:
+
+
+from sklearn.ensemble import GradientBoostingRegressor
+
+#hyper tuning parameters 
+
+max_depth=np.linspace(1,11,11)
+gbm_params_ = {'n_estimators': [100,200,500,1000,2000,4000], 'max_depth':max_depth  }
+
+
+gbm = GradientBoostingRegressor()
+
+grid_gbm_m = GridSearchCV( gbm,gbm_params_,
+                          scoring ='mean_squared_error',
+                          n_jobs=-1,
+                          cv=5)
+
+
+grid_gbm_m.fit(Xtrain,np.ravel(ytrain_log))
+gbm_preds = grid_gbm_m.predict(X= Xtest)
+print (grid_gbm_m.best_params_)
+print "R squared Value For GB: ",metrics.r2_score(ytest_log, gbm_preds)
+print "RMSE Value For GB: ",metrics.mean_squared_error(ytest_log,gbm_preds)
+
+
+
+rid_gbm_m.fit(Xtrain_en,np.ravel(ytrain_log))
+gbm_preds = grid_gbm_m.predict(X= Xtest_en)
+print (grid_gbm_m.best_params_)
+print "R squared Value For GB with encoded input: ",metrics.r2_score(ytest_log, gbm_preds)
+print "MSRE Value For GB with encoded input: ",metrics.mean_squared_error(ytest_log,gbm_preds)
+
+
+# __Support Vector Regression__
+
+# With RBF kernel:
+
+# In[188]:
+
+
+from sklearn.svm import SVR
+
+
+C =[1e-1,1e1,1e2,1e3,1e4,1e5]
+gamma  = 1/np.array([1,1e1,1e2,1e3])
+
+svr_params_ = { 'C':C, 'gamma':gamma}
+
+
+svr = SVR()
+
+grid_svr_m = GridSearchCV( svr,svr_params_,
+                          scoring ='mean_squared_error',
+                          n_jobs=-1,
+                          cv=5)
+
+grid_svr_m.fit(Xtrain,np.ravel(ytrain_log))
+svr_preds = grid_svr_m.predict(X= Xtest)
+print (grid_svr_m.best_params_)
+
+
+
+print "R squared Value For SVR with rbf kernel: ",metrics.r2_score(ytest_log, svr_preds)
+print "RMSE Value For SVR with rbf kernel: ",metrics.mean_squared_error(ytest_log,svr_preds)
+
+
+# With OneHotEncoding:
+
+
+
+
