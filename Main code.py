@@ -321,7 +321,6 @@ print "R squared Value For Linear Regression: ",metrics.r2_score(ytest_log, ols_
 
 # Mean Squared Error:
 
-# In[171]:
 
 
 print "MSRE Value For Linear Regression: ",metrics.mean_squared_error(ytest_log,ols_preds)
